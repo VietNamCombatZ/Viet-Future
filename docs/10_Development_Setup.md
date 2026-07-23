@@ -9,7 +9,7 @@ Target stack:
 - Database: PostgreSQL.
 - Deployment: AWS.
 
-Repository may use a React framework or an Express-based application framework, but runtime behavior and module boundaries must follow [System_Architecture.md](./System_Architecture.md). Examples below use current workspace directories `CampusLoop-FE` and `CampusLoop-BE` where available. Script names must follow each package's `package.json`.
+Repository may use a React framework or an Express-based application framework, but runtime behavior and module boundaries must follow [03_System_Architecture.md](./03_System_Architecture.md). Examples below use current workspace directories `CampusLoop-FE` and `CampusLoop-BE` where available. Script names must follow each package's `package.json`.
 
 ## 2. Prerequisites
 
@@ -36,7 +36,7 @@ Current workspace convention:
 └── infrastructure/      # recommended IaC location if not separate
 ```
 
-Long-term monorepo suggestion appears in [System_Architecture.md](./System_Architecture.md). Do not reorganize repositories solely from this document without a team decision.
+Long-term monorepo suggestion appears in [03_System_Architecture.md](./03_System_Architecture.md). Do not reorganize repositories solely from this document without a team decision.
 
 ## 4. Initial checkout
 

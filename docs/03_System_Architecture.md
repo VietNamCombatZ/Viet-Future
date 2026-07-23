@@ -144,7 +144,7 @@ Each mutation follows:
 - Read views/materialized views may serve admin metrics; do not use them as transactional truth.
 - DB migrations are reviewed, forward-deployable, and backed up before production schema changes.
 
-Full design: [Database_Design.md](./Database_Design.md).
+Full design: [04_Database_Design.md](./04_Database_Design.md).
 
 ## 7. AWS deployment architecture
 
