@@ -1,0 +1,995 @@
+%% CampusLoop ERD — USER_CHUNG_V2 — 2026-07-23
+%% USER is shared by students, parents/guardians, and community members.
+%% IMPORTANT: USER intentionally has no school_id. School data belongs only
+%% to optional academic/affiliation records or school-scoped business entities.
+erDiagram
+    USER {
+        uuid id PK
+        string display_name
+        string email UK "nullable"
+        string phone_e164 UK "nullable"
+        string password_hash "nullable"
+        uuid avatar_media_asset_id FK
+        uuid default_area_id FK
+        string system_role "USER OPERATOR ADMIN"
+        string account_status "PENDING ACTIVE SUSPENDED CLOSED"
+        datetime email_verified_at
+        datetime phone_verified_at
+        datetime last_login_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRIVATE_USER_PROFILE {
+        uuid id PK
+        uuid user_id FK,UK
+        string legal_name_encrypted
+        string date_of_birth_encrypted
+        int birth_year
+        string gender
+        string exact_address_encrypted
+        uuid area_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER_AFFILIATION {
+        uuid id PK
+        uuid user_id FK
+        uuid school_id FK
+        uuid verification_id FK
+        string affiliation_type "STUDENT PARENT_GUARDIAN ALUMNI STAFF COMMUNITY_MEMBER"
+        string status "SELF_DECLARED PENDING VERIFIED REJECTED EXPIRED"
+        boolean is_primary
+        datetime valid_from
+        datetime valid_until
+        datetime created_at
+        datetime updated_at
+    }
+
+    SCHOOL {
+        uuid id PK
+        string name
+        string short_name UK
+        string_array allowed_email_domains
+        uuid area_id FK
+        boolean is_active
+        datetime created_at
+    }
+
+    FACULTY {
+        uuid id PK
+        uuid school_id FK
+        string name
+        string code
+        boolean is_active
+    }
+
+    MAJOR {
+        uuid id PK
+        uuid school_id FK
+        uuid faculty_id FK
+        string name
+        string code
+        boolean is_active
+    }
+
+    USER_ACADEMIC_PROFILE {
+        uuid id PK
+        uuid user_id FK,UK
+        uuid school_id FK
+        uuid faculty_id FK
+        uuid major_id FK
+        string student_code_encrypted
+        string student_code_hash
+        int current_year
+        int current_semester
+        string cohort
+        datetime verified_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    AREA {
+        uuid id PK
+        uuid parent_id FK
+        string code UK
+        string name
+        string level "PROVINCE DISTRICT WARD CAMPUS"
+        boolean is_active
+    }
+
+    SERVICE_TRANSACTION {
+        uuid id PK
+        string transaction_code UK
+        string service_type "MARKETPLACE RENTAL TUTORING"
+        uuid initiated_by_id FK
+        string status "OPEN COMPLETED CANCELLED DISPUTED"
+        datetime occurred_at
+        datetime completed_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER_VERIFICATION {
+        uuid id PK
+        uuid user_id FK
+        string verification_type "STUDENT IDENTITY DRIVER_LICENSE VEHICLE_OWNERSHIP TUTOR_QUALIFICATION"
+        string status "PENDING VERIFIED REJECTED EXPIRED REVOKED"
+        uuid reviewed_by_id FK
+        datetime submitted_at
+        datetime verified_at
+        datetime expires_at
+        string rejection_reason
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRIVATE_DOCUMENT {
+        uuid id PK
+        uuid verification_id FK
+        string document_type
+        string storage_object_key
+        string file_hash
+        string mime_type
+        boolean encrypted
+        datetime issued_at
+        datetime expires_at
+        datetime created_at
+    }
+
+    USER_SERVICE_ACCESS {
+        uuid id PK
+        uuid user_id FK
+        string service_type "MARKETPLACE RENTAL TUTORING"
+        string status "ACTIVE PAUSED RESTRICTED BANNED"
+        string reason
+        uuid decided_by_id FK
+        datetime starts_at
+        datetime expires_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER_REPUTATION_SUMMARY {
+        uuid id PK
+        uuid user_id FK
+        string service_type "MARKETPLACE RENTAL TUTORING"
+        decimal score
+        int review_count
+        int completed_count
+        int cancelled_count
+        int dispute_count
+        datetime updated_at
+    }
+
+    MEDIA_ASSET {
+        uuid id PK
+        uuid uploaded_by_id FK
+        string storage_object_key UK
+        string access_level "PUBLIC PRIVATE RESTRICTED"
+        string mime_type
+        bigint size_bytes
+        string sha256
+        int width
+        int height
+        int duration_seconds
+        datetime created_at
+        datetime deleted_at
+    }
+
+    NOTIFICATION {
+        uuid id PK
+        uuid user_id FK
+        uuid transaction_id FK
+        string event_key
+        string title
+        string body
+        string action_url
+        datetime action_due_at
+        datetime read_at
+        datetime created_at
+    }
+
+    AUDIT_LOG {
+        uuid id PK
+        uuid actor_id FK
+        string entity_type
+        uuid entity_id
+        string action
+        json before_data
+        json after_data
+        string request_id
+        string ip_hash
+        datetime created_at
+    }
+
+    CATEGORY {
+        uuid id PK
+        string name
+        string slug UK
+        string description
+        boolean is_active
+    }
+
+    PRODUCT {
+        uuid id PK
+        uuid seller_id FK
+        uuid category_id FK
+        uuid school_id FK
+        uuid area_id FK
+        string title
+        string description
+        decimal price
+        decimal original_price
+        string condition
+        string status "PENDING APPROVED REJECTED RESERVED SOLD REMOVED"
+        string rejected_reason
+        int view_count
+        uuid moderated_by_id FK
+        datetime moderated_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRODUCT_MEDIA {
+        uuid id PK
+        uuid product_id FK
+        uuid media_asset_id FK
+        int sort_order
+        boolean is_cover
+        datetime created_at
+    }
+
+    CART_ITEM {
+        uuid id PK
+        uuid user_id FK
+        uuid product_id FK
+        datetime created_at
+    }
+
+    CAMPUSLOOP_POINT {
+        uuid id PK
+        string name
+        uuid school_id FK
+        uuid area_id FK
+        uuid operator_id FK
+        string address
+        json operating_hours
+        int capacity
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    ORDER {
+        uuid id PK
+        string order_code UK
+        uuid transaction_id FK,UK
+        uuid buyer_id FK
+        uuid seller_id FK
+        uuid product_id FK
+        uuid campusloop_point_id FK
+        string fulfillment_method "DIRECT_MEETUP CAMPUSLOOP_POINT"
+        string status "PENDING_CONFIRMATION CONFIRMED WAITING_DROP_OFF IN_TRANSIT READY_FOR_PICKUP COMPLETED REJECTED CANCELLED EXPIRED DISPUTED"
+        decimal amount
+        json product_snapshot
+        datetime hold_expires_at
+        string pickup_qr_ciphertext
+        string pickup_token_hash UK
+        datetime pickup_token_expires_at
+        datetime pickup_token_used_at
+        datetime completed_at
+        datetime cancelled_at
+        string cancel_reason
+        int version
+        datetime created_at
+        datetime updated_at
+    }
+
+    ORDER_STATUS_LOG {
+        uuid id PK
+        uuid order_id FK
+        string from_status
+        string to_status
+        uuid changed_by_id FK
+        string reason_code
+        string note
+        datetime created_at
+    }
+
+    VEHICLE {
+        uuid id PK
+        string vehicle_code UK
+        uuid owner_id FK
+        uuid public_area_id FK
+        string type
+        string brand
+        string model
+        int manufacture_year
+        string color
+        string plate_number_encrypted
+        string plate_number_hash UK
+        decimal daily_rate
+        decimal hourly_rate
+        decimal default_deposit
+        int included_km_per_day
+        decimal extra_km_rate
+        string approval_status "DRAFT PENDING APPROVED REJECTED SUSPENDED"
+        string availability_status "AVAILABLE UNAVAILABLE MAINTENANCE"
+        string public_description
+        string terms
+        uuid moderated_by_id FK
+        datetime moderated_at
+        boolean is_active
+        int version
+        datetime created_at
+        datetime updated_at
+    }
+
+    VEHICLE_MEDIA {
+        uuid id PK
+        uuid vehicle_id FK
+        uuid media_asset_id FK
+        int sort_order
+        boolean is_cover
+        datetime created_at
+    }
+
+    VEHICLE_DOCUMENT {
+        uuid id PK
+        uuid vehicle_id FK
+        uuid media_asset_id FK
+        string document_type "REGISTRATION INSURANCE AUTHORIZATION"
+        string status "PENDING VERIFIED REJECTED EXPIRED"
+        uuid reviewed_by_id FK
+        datetime issued_at
+        datetime expires_at
+        datetime reviewed_at
+        string rejection_reason
+        datetime created_at
+    }
+
+    VEHICLE_AVAILABILITY_RULE {
+        uuid id PK
+        uuid vehicle_id FK
+        int day_of_week
+        time start_time
+        time end_time
+        string timezone
+        date effective_from
+        date effective_to
+        boolean is_active
+    }
+
+    VEHICLE_CALENDAR_BLOCK {
+        uuid id PK
+        uuid vehicle_id FK
+        uuid booking_id FK
+        string source_type "PAYMENT_HOLD BOOKING OWNER_BLOCK MAINTENANCE INCIDENT"
+        string status "ACTIVE RELEASED"
+        datetime blocked_from
+        datetime blocked_until
+        datetime expires_at
+        string reason
+        datetime created_at
+        datetime released_at
+    }
+
+    RENTAL_BOOKING {
+        uuid id PK
+        string booking_code UK
+        uuid transaction_id FK,UK
+        uuid vehicle_id FK
+        uuid renter_id FK
+        uuid owner_id FK
+        uuid pickup_area_id FK
+        datetime start_at
+        datetime end_at
+        string status "PENDING_OWNER AWAITING_PAYMENT CONFIRMED READY_FOR_PICKUP ACTIVE RETURN_REQUESTED RETURN_INSPECTION COMPLETED REJECTED CANCELLED EXPIRED DISPUTED"
+        decimal rental_amount
+        decimal deposit_amount
+        decimal platform_fee
+        decimal discount_amount
+        decimal total_amount
+        string currency
+        string pickup_address_encrypted
+        json vehicle_snapshot
+        json pricing_snapshot
+        json terms_snapshot
+        datetime owner_response_expires_at
+        datetime payment_expires_at
+        datetime actual_pickup_at
+        datetime actual_return_at
+        datetime dispute_deadline_at
+        int version
+        datetime created_at
+        datetime updated_at
+    }
+
+    RENTAL_BOOKING_STATUS_LOG {
+        uuid id PK
+        uuid booking_id FK
+        string from_status
+        string to_status
+        uuid changed_by_id FK
+        string reason_code
+        string note
+        datetime created_at
+    }
+
+    RENTAL_INSPECTION {
+        uuid id PK
+        uuid booking_id FK
+        string inspection_type "PICKUP RETURN"
+        int odometer_km
+        decimal fuel_level_percent
+        string condition_note
+        json checklist
+        uuid created_by_id FK
+        datetime renter_confirmed_at
+        datetime owner_confirmed_at
+        datetime inspected_at
+        datetime created_at
+    }
+
+    RENTAL_INSPECTION_MEDIA {
+        uuid id PK
+        uuid inspection_id FK
+        uuid media_asset_id FK
+        string media_type "PHOTO VIDEO"
+        string label
+        int sort_order
+        datetime captured_at
+    }
+
+    RENTAL_INCIDENT {
+        uuid id PK
+        uuid booking_id FK
+        uuid reported_by_id FK
+        string incident_type "ACCIDENT DAMAGE BREAKDOWN LOSS TRAFFIC_FINE LATE_RETURN OTHER"
+        string severity
+        string description
+        decimal estimated_amount
+        string status "OPEN UNDER_REVIEW RESOLVED CLOSED"
+        datetime occurred_at
+        datetime resolved_at
+        datetime created_at
+    }
+
+    GUARDIAN_CONTACT {
+        uuid id PK
+        uuid linked_user_id FK,UK
+        uuid created_by_id FK
+        string full_name_encrypted
+        string phone_encrypted
+        string phone_hash
+        string email_encrypted
+        string exact_address_encrypted
+        uuid area_id FK
+        datetime consent_at
+        string consent_version
+        datetime verified_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    LEARNER_PROFILE {
+        uuid id PK
+        uuid guardian_contact_id FK
+        string display_name
+        string legal_name_encrypted
+        int birth_year
+        string gender
+        string current_school_encrypted
+        string learning_note_encrypted
+        datetime created_at
+        datetime updated_at
+    }
+
+    TUTOR_PROFILE {
+        uuid id PK
+        uuid user_id FK,UK
+        string profile_status "DRAFT PENDING VERIFIED REJECTED SUSPENDED"
+        string headline
+        string bio
+        decimal expected_hourly_rate
+        int experience_months
+        boolean accepts_offline
+        boolean accepts_online
+        uuid reviewed_by_id FK
+        datetime reviewed_at
+        string rejection_reason
+        datetime created_at
+        datetime updated_at
+    }
+
+    TUTORING_SUBJECT {
+        uuid id PK
+        string name
+        string slug UK
+        string education_level
+        boolean is_active
+    }
+
+    TUTOR_SUBJECT {
+        uuid id PK
+        uuid tutor_profile_id FK
+        uuid subject_id FK
+        string grade_from
+        string grade_to
+        decimal expected_rate
+        int experience_months
+        datetime created_at
+    }
+
+    TUTOR_AVAILABILITY {
+        uuid id PK
+        uuid tutor_profile_id FK
+        int day_of_week
+        time start_time
+        time end_time
+        string timezone
+        uuid area_id FK
+        string teaching_mode "ONLINE OFFLINE BOTH"
+        boolean is_active
+    }
+
+    TUTOR_CREDENTIAL {
+        uuid id PK
+        uuid tutor_profile_id FK
+        uuid media_asset_id FK
+        string credential_type "TRANSCRIPT CERTIFICATE AWARD OTHER"
+        string title
+        string issuer
+        string status "PENDING VERIFIED REJECTED"
+        uuid reviewed_by_id FK
+        datetime issued_at
+        datetime reviewed_at
+        datetime created_at
+    }
+
+    TUTOR_CLASS {
+        uuid id PK
+        string class_code UK
+        uuid guardian_contact_id FK
+        uuid learner_profile_id FK
+        uuid subject_id FK
+        uuid public_area_id FK
+        uuid created_by_id FK
+        string title
+        string grade_level
+        string goal
+        string teaching_mode "ONLINE OFFLINE HYBRID"
+        int sessions_per_week
+        int session_duration_minutes
+        decimal expected_tuition
+        decimal placement_fee
+        string status "DRAFT PUBLISHED SCREENING HELD FILLED CANCELLED ARCHIVED"
+        datetime last_verified_at
+        datetime published_at
+        datetime application_deadline_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    TUTOR_CLASS_SCHEDULE {
+        uuid id PK
+        uuid tutor_class_id FK
+        int day_of_week
+        time start_time
+        time end_time
+        boolean is_flexible
+        string note
+    }
+
+    TUTOR_APPLICATION {
+        uuid id PK
+        string application_code UK
+        uuid tutor_class_id FK
+        uuid tutor_profile_id FK
+        string status "SUBMITTED UNDER_REVIEW SHORTLISTED WITHDRAWN REJECTED SELECTED"
+        string introduction
+        decimal proposed_tuition
+        json tutor_profile_snapshot
+        datetime submitted_at
+        datetime reviewed_at
+        uuid reviewed_by_id FK
+        string rejection_reason
+        datetime created_at
+        datetime updated_at
+    }
+
+    TUTOR_APPLICATION_STATUS_LOG {
+        uuid id PK
+        uuid application_id FK
+        string from_status
+        string to_status
+        uuid changed_by_id FK
+        string note
+        datetime created_at
+    }
+
+    TUTOR_PLACEMENT {
+        uuid id PK
+        string placement_code UK
+        uuid transaction_id FK,UK
+        uuid tutor_class_id FK
+        uuid application_id FK,UK
+        uuid tutor_id FK
+        string status "AWAITING_PAYMENT CONTACT_UNLOCKED CONTACTED TRIAL_SCHEDULED ACTIVE COMPLETED CANCELLED EXPIRED DISPUTED"
+        decimal placement_fee_snapshot
+        datetime payment_expires_at
+        datetime contact_deadline_at
+        datetime trial_at
+        datetime started_at
+        datetime completed_at
+        string outcome
+        int version
+        datetime created_at
+        datetime updated_at
+    }
+
+    CONTACT_ACCESS_GRANT {
+        uuid id PK
+        uuid placement_id FK,UK
+        uuid guardian_contact_id FK
+        uuid grantee_user_id FK
+        uuid granted_by_id FK
+        string access_scope
+        datetime granted_at
+        datetime first_viewed_at
+        datetime expires_at
+        datetime revoked_at
+        string revoke_reason
+    }
+
+    TUTOR_SESSION {
+        uuid id PK
+        uuid placement_id FK
+        string session_type "INTRO_CALL TRIAL REGULAR"
+        datetime scheduled_start_at
+        datetime scheduled_end_at
+        string status "SCHEDULED COMPLETED CANCELLED NO_SHOW"
+        string tutor_note
+        string guardian_feedback
+        datetime completed_at
+        datetime created_at
+    }
+
+    PAYMENT_INTENT {
+        uuid id PK
+        uuid transaction_id FK
+        uuid payer_id FK
+        string purpose "ORDER_PAYMENT RENTAL_TOTAL RENTAL_DEPOSIT TUTOR_PLACEMENT_FEE DAMAGE_FEE LATE_FEE"
+        decimal amount
+        string currency
+        string provider
+        string method
+        string provider_payment_id UK
+        string idempotency_key UK
+        string status "CREATED PENDING PAID FAILED EXPIRED CANCELLED PARTIALLY_REFUNDED REFUNDED"
+        string qr_payload_ciphertext
+        datetime expires_at
+        datetime paid_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    PAYMENT_ALLOCATION {
+        uuid id PK
+        uuid payment_intent_id FK
+        string allocation_type "PRODUCT_PRICE RENTAL_FEE DEPOSIT PLATFORM_FEE TUTOR_PLACEMENT_FEE DAMAGE_FEE LATE_FEE"
+        decimal amount
+        uuid beneficiary_user_id FK
+        datetime created_at
+    }
+
+    PAYMENT_WEBHOOK_EVENT {
+        uuid id PK
+        uuid payment_intent_id FK
+        string provider
+        string provider_event_id UK
+        string payload_hash
+        boolean signature_verified
+        string processing_status "RECEIVED PROCESSED IGNORED FAILED"
+        int attempt_count
+        string error_message
+        datetime received_at
+        datetime processed_at
+    }
+
+    REFUND {
+        uuid id PK
+        string refund_code UK
+        uuid payment_intent_id FK
+        uuid requested_by_id FK
+        uuid approved_by_id FK
+        string provider_refund_id UK
+        decimal amount
+        string reason_code
+        string reason_note
+        string status "REQUESTED APPROVED PROCESSING SUCCEEDED FAILED REJECTED"
+        datetime requested_at
+        datetime completed_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    PAYOUT_ACCOUNT {
+        uuid id PK
+        uuid user_id FK
+        string provider
+        string provider_recipient_id
+        string masked_account
+        string status "PENDING VERIFIED REJECTED DISABLED"
+        boolean is_default
+        datetime created_at
+        datetime updated_at
+    }
+
+    PAYOUT {
+        uuid id PK
+        string payout_code UK
+        uuid transaction_id FK
+        uuid payee_id FK
+        uuid payout_account_id FK
+        string purpose "SELLER_PROCEEDS RENTAL_OWNER_PROCEEDS"
+        decimal gross_amount
+        decimal fee_amount
+        decimal net_amount
+        string currency
+        string provider_payout_id UK
+        string status "BLOCKED READY PROCESSING PAID FAILED CANCELLED"
+        datetime available_at
+        datetime paid_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    DISPUTE_CASE {
+        uuid id PK
+        string dispute_code UK
+        uuid transaction_id FK
+        uuid opened_by_id FK
+        uuid assigned_to_id FK
+        string category
+        string status "OPEN EVIDENCE_REQUIRED UNDER_REVIEW RESOLVED REJECTED CLOSED"
+        string description
+        decimal disputed_amount
+        string resolution_code
+        string resolution_note
+        uuid resolved_by_id FK
+        datetime evidence_due_at
+        datetime resolved_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    DISPUTE_EVIDENCE {
+        uuid id PK
+        uuid dispute_id FK
+        uuid submitted_by_id FK
+        uuid media_asset_id FK
+        string evidence_type
+        string description
+        datetime submitted_at
+    }
+
+    DISPUTE_STATUS_LOG {
+        uuid id PK
+        uuid dispute_id FK
+        string from_status
+        string to_status
+        uuid changed_by_id FK
+        string note
+        datetime created_at
+    }
+
+    REVIEW {
+        uuid id PK
+        uuid transaction_id FK
+        uuid reviewer_id FK
+        uuid reviewee_id FK
+        string service_type "MARKETPLACE RENTAL TUTORING"
+        int rating
+        string comment
+        json rating_breakdown
+        string moderation_status "VISIBLE HIDDEN PENDING"
+        datetime created_at
+        datetime updated_at
+    }
+
+    SUPPORT_TICKET {
+        uuid id PK
+        string ticket_code UK
+        uuid requester_id FK
+        uuid assignee_id FK
+        uuid transaction_id FK
+        string category
+        string priority
+        string status "OPEN WAITING_SUPPORT WAITING_USER RESOLVED CLOSED"
+        string subject
+        string description
+        datetime last_message_at
+        datetime resolved_at
+        datetime closed_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    SUPPORT_TICKET_MESSAGE {
+        uuid id PK
+        uuid ticket_id FK
+        uuid author_id FK
+        string body
+        boolean is_internal
+        datetime created_at
+    }
+
+    SUPPORT_TICKET_ATTACHMENT {
+        uuid id PK
+        uuid ticket_id FK
+        uuid message_id FK
+        uuid uploader_id FK
+        uuid media_asset_id FK
+        datetime created_at
+    }
+
+    REPORT {
+        uuid id PK
+        uuid reporter_id FK
+        string target_type
+        uuid target_id
+        string reason
+        string description
+        string status "PENDING UNDER_REVIEW RESOLVED DISMISSED"
+        uuid handled_by_id FK
+        datetime handled_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    AREA o|--o{ AREA : contains
+    AREA o|--o{ USER : defaults_for
+    AREA o|--o{ PRIVATE_USER_PROFILE : privately_locates
+    AREA o|--o{ SCHOOL : locates
+    SCHOOL ||--o{ FACULTY : has
+    SCHOOL ||--o{ MAJOR : offers
+    FACULTY o|--o{ MAJOR : groups
+    USER ||--o| PRIVATE_USER_PROFILE : owns
+    USER ||--o{ USER_AFFILIATION : declares
+    SCHOOL o|--o{ USER_AFFILIATION : affiliates
+    USER_VERIFICATION o|--o{ USER_AFFILIATION : proves
+    USER ||--o| USER_ACADEMIC_PROFILE : owns
+    SCHOOL o|--o{ USER_ACADEMIC_PROFILE : describes
+    FACULTY o|--o{ USER_ACADEMIC_PROFILE : describes
+    MAJOR o|--o{ USER_ACADEMIC_PROFILE : describes
+
+    USER ||--o{ USER_VERIFICATION : submits
+    USER o|--o{ USER_VERIFICATION : reviews
+    USER_VERIFICATION ||--o{ PRIVATE_DOCUMENT : contains
+    USER ||--o{ USER_SERVICE_ACCESS : receives
+    USER ||--o{ USER_REPUTATION_SUMMARY : has
+    USER ||--o{ MEDIA_ASSET : uploads
+    MEDIA_ASSET o|--o| USER : serves_as_avatar
+    USER ||--o{ SERVICE_TRANSACTION : initiates
+    USER ||--o{ NOTIFICATION : receives
+    SERVICE_TRANSACTION o|--o{ NOTIFICATION : contextualizes
+    USER o|--o{ AUDIT_LOG : performs
+
+    USER ||--o{ PRODUCT : sells
+    CATEGORY ||--o{ PRODUCT : classifies
+    SCHOOL o|--o{ PRODUCT : scopes
+    AREA o|--o{ PRODUCT : locates
+    USER o|--o{ PRODUCT : moderates
+    PRODUCT ||--o{ PRODUCT_MEDIA : displays
+    MEDIA_ASSET ||--o{ PRODUCT_MEDIA : supplies
+    USER ||--o{ CART_ITEM : owns
+    PRODUCT ||--o{ CART_ITEM : appears_in
+    SCHOOL o|--o{ CAMPUSLOOP_POINT : hosts
+    AREA o|--o{ CAMPUSLOOP_POINT : locates
+    USER o|--o{ CAMPUSLOOP_POINT : operates
+    SERVICE_TRANSACTION ||--o| ORDER : represents
+    USER ||--o{ ORDER : buys
+    USER ||--o{ ORDER : sells
+    PRODUCT ||--o{ ORDER : ordered_as
+    CAMPUSLOOP_POINT o|--o{ ORDER : fulfills
+    ORDER ||--o{ ORDER_STATUS_LOG : records
+    USER ||--o{ ORDER_STATUS_LOG : changes
+
+    USER ||--o{ VEHICLE : owns
+    AREA o|--o{ VEHICLE : locates
+    USER o|--o{ VEHICLE : moderates
+    VEHICLE ||--o{ VEHICLE_MEDIA : displays
+    MEDIA_ASSET ||--o{ VEHICLE_MEDIA : supplies
+    VEHICLE ||--o{ VEHICLE_DOCUMENT : proves
+    MEDIA_ASSET ||--o{ VEHICLE_DOCUMENT : stores
+    USER o|--o{ VEHICLE_DOCUMENT : reviews
+    VEHICLE ||--o{ VEHICLE_AVAILABILITY_RULE : schedules
+    VEHICLE ||--o{ VEHICLE_CALENDAR_BLOCK : blocks
+    SERVICE_TRANSACTION ||--o| RENTAL_BOOKING : represents
+    VEHICLE ||--o{ RENTAL_BOOKING : booked_for
+    USER ||--o{ RENTAL_BOOKING : rents
+    USER ||--o{ RENTAL_BOOKING : provides
+    AREA o|--o{ RENTAL_BOOKING : pickup_area
+    RENTAL_BOOKING o|--o{ VEHICLE_CALENDAR_BLOCK : creates
+    RENTAL_BOOKING ||--o{ RENTAL_BOOKING_STATUS_LOG : records
+    USER ||--o{ RENTAL_BOOKING_STATUS_LOG : changes
+    RENTAL_BOOKING ||--o{ RENTAL_INSPECTION : has
+    USER ||--o{ RENTAL_INSPECTION : creates
+    RENTAL_INSPECTION ||--o{ RENTAL_INSPECTION_MEDIA : documents
+    MEDIA_ASSET ||--o{ RENTAL_INSPECTION_MEDIA : supplies
+    RENTAL_BOOKING ||--o{ RENTAL_INCIDENT : encounters
+    USER ||--o{ RENTAL_INCIDENT : reports
+
+    USER o|--o| GUARDIAN_CONTACT : links
+    USER ||--o{ GUARDIAN_CONTACT : creates
+    AREA o|--o{ GUARDIAN_CONTACT : locates
+    GUARDIAN_CONTACT ||--o{ LEARNER_PROFILE : represents
+    USER ||--o| TUTOR_PROFILE : becomes
+    USER o|--o{ TUTOR_PROFILE : reviews
+    TUTOR_PROFILE ||--o{ TUTOR_SUBJECT : teaches
+    TUTORING_SUBJECT ||--o{ TUTOR_SUBJECT : qualifies
+    TUTOR_PROFILE ||--o{ TUTOR_AVAILABILITY : offers
+    AREA o|--o{ TUTOR_AVAILABILITY : covers
+    TUTOR_PROFILE ||--o{ TUTOR_CREDENTIAL : presents
+    MEDIA_ASSET ||--o{ TUTOR_CREDENTIAL : stores
+    USER o|--o{ TUTOR_CREDENTIAL : reviews
+    GUARDIAN_CONTACT ||--o{ TUTOR_CLASS : requests
+    LEARNER_PROFILE ||--o{ TUTOR_CLASS : needs
+    TUTORING_SUBJECT ||--o{ TUTOR_CLASS : requires
+    AREA o|--o{ TUTOR_CLASS : advertises_in
+    USER ||--o{ TUTOR_CLASS : publishes
+    TUTOR_CLASS ||--o{ TUTOR_CLASS_SCHEDULE : schedules
+    TUTOR_CLASS ||--o{ TUTOR_APPLICATION : receives
+    TUTOR_PROFILE ||--o{ TUTOR_APPLICATION : submits
+    USER o|--o{ TUTOR_APPLICATION : reviews
+    TUTOR_APPLICATION ||--o{ TUTOR_APPLICATION_STATUS_LOG : records
+    USER ||--o{ TUTOR_APPLICATION_STATUS_LOG : changes
+    SERVICE_TRANSACTION ||--o| TUTOR_PLACEMENT : represents
+    TUTOR_CLASS ||--o{ TUTOR_PLACEMENT : fills
+    TUTOR_APPLICATION ||--o| TUTOR_PLACEMENT : selected_as
+    USER ||--o{ TUTOR_PLACEMENT : assigned_to
+    TUTOR_PLACEMENT ||--o| CONTACT_ACCESS_GRANT : unlocks
+    GUARDIAN_CONTACT ||--o{ CONTACT_ACCESS_GRANT : exposes
+    USER ||--o{ CONTACT_ACCESS_GRANT : receives
+    USER ||--o{ CONTACT_ACCESS_GRANT : grants
+    TUTOR_PLACEMENT ||--o{ TUTOR_SESSION : schedules
+
+    SERVICE_TRANSACTION ||--o{ PAYMENT_INTENT : charges
+    USER ||--o{ PAYMENT_INTENT : pays
+    PAYMENT_INTENT ||--o{ PAYMENT_ALLOCATION : splits
+    PAYMENT_INTENT o|--o{ PAYMENT_WEBHOOK_EVENT : confirmed_by
+    USER o|--o{ PAYMENT_ALLOCATION : benefits
+    PAYMENT_INTENT ||--o{ REFUND : refunds
+    USER ||--o{ REFUND : requests
+    USER o|--o{ REFUND : approves
+    USER ||--o{ PAYOUT_ACCOUNT : owns
+    SERVICE_TRANSACTION ||--o{ PAYOUT : settles
+    USER ||--o{ PAYOUT : receives
+    PAYOUT_ACCOUNT ||--o{ PAYOUT : routes
+
+    SERVICE_TRANSACTION ||--o{ DISPUTE_CASE : disputed_by
+    USER ||--o{ DISPUTE_CASE : opens
+    USER o|--o{ DISPUTE_CASE : handles
+    DISPUTE_CASE ||--o{ DISPUTE_EVIDENCE : contains
+    USER ||--o{ DISPUTE_EVIDENCE : submits
+    MEDIA_ASSET o|--o{ DISPUTE_EVIDENCE : stores
+    DISPUTE_CASE ||--o{ DISPUTE_STATUS_LOG : records
+    USER ||--o{ DISPUTE_STATUS_LOG : changes
+
+    SERVICE_TRANSACTION ||--o{ REVIEW : receives
+    USER ||--o{ REVIEW : writes
+    USER ||--o{ REVIEW : receives
+    USER ||--o{ SUPPORT_TICKET : requests
+    USER o|--o{ SUPPORT_TICKET : handles
+    SERVICE_TRANSACTION o|--o{ SUPPORT_TICKET : concerns
+    SUPPORT_TICKET ||--o{ SUPPORT_TICKET_MESSAGE : contains
+    USER ||--o{ SUPPORT_TICKET_MESSAGE : authors
+    SUPPORT_TICKET ||--o{ SUPPORT_TICKET_ATTACHMENT : contains
+    SUPPORT_TICKET_MESSAGE o|--o{ SUPPORT_TICKET_ATTACHMENT : attaches
+    USER ||--o{ SUPPORT_TICKET_ATTACHMENT : uploads
+    MEDIA_ASSET ||--o{ SUPPORT_TICKET_ATTACHMENT : stores
+    USER ||--o{ REPORT : files
+    USER o|--o{ REPORT : handles
